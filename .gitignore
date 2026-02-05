@@ -24,5 +24,3 @@ npm-debug.log*
 # Cache
 .cache/
 
-# Config with admin pin
-src/data/constants.js
