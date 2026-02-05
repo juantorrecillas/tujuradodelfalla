@@ -7,6 +7,7 @@ import { fsSubscribe } from '../lib/firebase';
 export function RankingTab({ resultados }) {
   const [allPredictions, setAllPredictions] = useState({});
   const [loading, setLoading] = useState(true);
+  const [expandedPlayer, setExpandedPlayer] = useState(null);
 
   useEffect(() => {
     const unsubscribe = fsSubscribe('predictions', 'all', (data) => {
@@ -48,18 +49,20 @@ export function RankingTab({ resultados }) {
 
       const score = calculateScore(mods);
 
-      return { name, totalPicks, completedMods, score };
+      return { name, totalPicks, completedMods, score, predictions: mods };
     })
     .sort((a, b) => {
-      // Si hay puntuaciones, ordenar por puntuación
       if (a.score !== null && b.score !== null) {
         return b.score - a.score;
       }
-      // Si no, ordenar por total de predicciones
       return b.totalPicks - a.totalPicks;
     });
 
   const hasResults = resultados?.quienPasa;
+
+  const toggleExpand = (name) => {
+    setExpandedPlayer(expandedPlayer === name ? null : name);
+  };
 
   return (
     <div style={{ paddingBottom: 100 }}>
@@ -106,7 +109,7 @@ export function RankingTab({ resultados }) {
       </div>
 
       <div className="page-content" style={{ padding: "0 20px" }}>
-        <Section title="Participantes">
+        <Section title="Participantes" subtitle="Toca en un nombre para ver sus predicciones">
           {loading ? (
             <div
               style={{
@@ -144,84 +147,187 @@ export function RankingTab({ resultados }) {
             <div
               style={{ display: "flex", flexDirection: "column", gap: 8 }}
             >
-              {players.map((p, i) => (
-                <div
-                  key={p.name}
-                  style={{
-                    background: T.bgCard,
-                    borderRadius: T.rSm,
-                    border: `1px solid ${T.border}`,
-                    padding: "14px 16px",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    boxShadow: T.shadow
-                  }}
-                >
+              {players.map((p, i) => {
+                const isExpanded = expandedPlayer === p.name;
+                return (
                   <div
+                    key={p.name}
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 99,
-                      background:
-                        i === 0
-                          ? T.primary
-                          : i === 1
-                          ? "#B0B0B0"
-                          : i === 2
-                          ? "#C8956A"
-                          : T.border,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#fff",
-                      fontWeight: 800,
-                      fontSize: 13,
-                      flexShrink: 0
+                      background: T.bgCard,
+                      borderRadius: T.rSm,
+                      border: isExpanded
+                        ? `1.5px solid ${T.primary}`
+                        : `1px solid ${T.border}`,
+                      overflow: "hidden",
+                      boxShadow: isExpanded ? T.shadowMd : T.shadow,
+                      transition: "all 0.2s ease"
                     }}
                   >
-                    {i + 1}
-                  </div>
-                  <div style={{ flex: 1 }}>
+                    {/* Header clickable */}
                     <div
-                      style={{ fontWeight: 700, fontSize: 14, color: T.text }}
-                    >
-                      {p.name}
-                    </div>
-                    <div
+                      onClick={() => toggleExpand(p.name)}
                       style={{
+                        padding: "14px 16px",
                         display: "flex",
-                        gap: 4,
-                        marginTop: 4,
-                        flexWrap: "wrap",
-                        alignItems: "center"
+                        alignItems: "center",
+                        gap: 14,
+                        cursor: "pointer",
+                        background: isExpanded ? T.primarySoft : "transparent"
                       }}
                     >
-                      {p.completedMods.map(k => (
-                        <Dot key={k} color={MODALIDADES[k].color} size={7} />
-                      ))}
-                      <span
+                      <div
                         style={{
-                          fontSize: 11,
-                          color: T.textSec,
-                          marginLeft: 4
+                          width: 32,
+                          height: 32,
+                          borderRadius: 99,
+                          background:
+                            i === 0
+                              ? T.primary
+                              : i === 1
+                              ? "#B0B0B0"
+                              : i === 2
+                              ? "#C8956A"
+                              : T.border,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#fff",
+                          fontWeight: 800,
+                          fontSize: 13,
+                          flexShrink: 0
                         }}
                       >
-                        {p.totalPicks} predicciones
-                      </span>
+                        {i + 1}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div
+                          style={{ fontWeight: 700, fontSize: 14, color: T.text }}
+                        >
+                          {p.name}
+                        </div>
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: 4,
+                            marginTop: 4,
+                            flexWrap: "wrap",
+                            alignItems: "center"
+                          }}
+                        >
+                          {p.completedMods.map(k => (
+                            <Dot key={k} color={MODALIDADES[k].color} size={7} />
+                          ))}
+                          <span
+                            style={{
+                              fontSize: 11,
+                              color: T.textSec,
+                              marginLeft: 4
+                            }}
+                          >
+                            {p.totalPicks} predicciones
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <span
+                          style={{
+                            fontSize: 18,
+                            fontWeight: 800,
+                            color: hasResults ? T.primary : T.border
+                          }}
+                        >
+                          {p.score !== null ? p.score : "—"}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 12,
+                            color: T.textSec,
+                            transition: "transform 0.2s",
+                            transform: isExpanded ? "rotate(180deg)" : "rotate(0)"
+                          }}
+                        >
+                          ▼
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Predicciones expandidas */}
+                    {isExpanded && (
+                      <div
+                        style={{
+                          padding: "12px 16px 16px",
+                          borderTop: `1px solid ${T.border}`,
+                          background: T.bgWarm
+                        }}
+                      >
+                        {Object.entries(MODALIDADES).map(([modKey, mod]) => {
+                          const picks = p.predictions[modKey] || [];
+                          if (picks.length === 0) return null;
+
+                          return (
+                            <div key={modKey} style={{ marginBottom: 12 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 6,
+                                  marginBottom: 6
+                                }}
+                              >
+                                <Dot color={mod.color} size={8} />
+                                <span
+                                  style={{
+                                    fontSize: 12,
+                                    fontWeight: 700,
+                                    color: mod.color
+                                  }}
+                                >
+                                  {mod.label}s ({picks.length}/{mod.maxPasan})
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexWrap: "wrap",
+                                  gap: 4
+                                }}
+                              >
+                                {picks.map(pick => (
+                                  <span
+                                    key={pick}
+                                    style={{
+                                      fontSize: 11,
+                                      padding: "3px 8px",
+                                      borderRadius: T.rPill,
+                                      background: `${mod.color}15`,
+                                      color: mod.color,
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {pick}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {p.completedMods.length === 0 && (
+                          <div
+                            style={{
+                              fontSize: 12,
+                              color: T.textSec,
+                              fontStyle: "italic"
+                            }}
+                          >
+                            Sin predicciones todavía
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <span
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 800,
-                      color: hasResults ? T.primary : T.border
-                    }}
-                  >
-                    {p.score !== null ? p.score : "—"}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </Section>
