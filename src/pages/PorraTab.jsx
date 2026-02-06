@@ -5,12 +5,15 @@ import { Section, Dot, Tag } from '../components/ui';
 import { PredCard } from '../components/PredCard';
 import { LockedBanner } from '../components/LockedBanner';
 import { usePredictions, useScores } from '../hooks/useAppState';
+import { fsSubscribe } from '../lib/firebase';
 
 // ============================================
 // LOGIN FORM
 // ============================================
-function LoginForm({ onLogin }) {
+function LoginForm({ onLogin, allPredictions }) {
   const [nameInput, setNameInput] = useState("");
+
+  const nameExists = nameInput.trim() && allPredictions[nameInput.trim()];
 
   const handleSubmit = () => {
     if (nameInput.trim()) {
@@ -57,16 +60,37 @@ function LoginForm({ onLogin }) {
               width: "100%",
               padding: "13px 16px",
               borderRadius: T.rSm,
-              border: `1.5px solid ${T.border}`,
+              border: `1.5px solid ${nameExists ? "#F5A623" : T.border}`,
               background: T.bgWarm,
               fontFamily: T.font,
               fontSize: 15,
               color: T.text,
               outline: "none"
             }}
-            onFocus={e => (e.target.style.borderColor = T.primary)}
-            onBlur={e => (e.target.style.borderColor = T.border)}
+            onFocus={e => (e.target.style.borderColor = nameExists ? "#F5A623" : T.primary)}
+            onBlur={e => (e.target.style.borderColor = nameExists ? "#F5A623" : T.border)}
           />
+
+          {nameExists && (
+            <div
+              style={{
+                marginTop: 12,
+                padding: "12px 14px",
+                borderRadius: T.rSm,
+                background: "#FFF3CD",
+                border: "1px solid #F5A623",
+                display: "flex",
+                alignItems: "start",
+                gap: 10
+              }}
+            >
+              <span style={{ fontSize: 16 }}>⚠️</span>
+              <div style={{ flex: 1, fontSize: 13, lineHeight: 1.5, color: "#856404" }}>
+                <strong>Este nombre ya está en uso.</strong> Si eres tú, puedes continuar y editar tus predicciones. Si no, por favor usa otro nombre para diferenciaros.
+              </div>
+            </div>
+          )}
+
           <button
             onClick={handleSubmit}
             disabled={!nameInput.trim()}
@@ -549,9 +573,18 @@ function PuntosView({ userName, locked }) {
 // ============================================
 export function PorraTab({ userName, onLogin, onLogout, locked }) {
   const [subTab, setSubTab] = useState("pasa");
+  const [allPredictions, setAllPredictions] = useState({});
+
+  // Suscribirse a todas las predicciones para verificar nombres duplicados
+  useEffect(() => {
+    const unsubscribe = fsSubscribe('predictions', 'all', (data) => {
+      setAllPredictions(data || {});
+    });
+    return () => unsubscribe();
+  }, []);
 
   if (!userName) {
-    return <LoginForm onLogin={onLogin} />;
+    return <LoginForm onLogin={onLogin} allPredictions={allPredictions} />;
   }
 
   return (
