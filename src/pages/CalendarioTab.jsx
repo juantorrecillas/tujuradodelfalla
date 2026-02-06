@@ -1,25 +1,25 @@
 import { useState } from 'react';
 import { T } from '../data/theme';
-import { SESIONES_CUARTOS } from '../data/constants';
+import { SESIONES_SEMIFINALES } from '../data/constants';
 import { PageHeader, Section } from '../components/ui';
 import { SessionCard } from '../components/SessionCard';
 
 export function CalendarioTab() {
   const [showAll, setShowAll] = useState(false);
   const today = new Date().toISOString().split('T')[0];
-  const todaySession = SESIONES_CUARTOS.find(s => s.fecha === today);
+  const todaySession = SESIONES_SEMIFINALES.find(s => s.fecha === today);
 
   return (
     <div style={{ paddingBottom: 100 }}>
       <PageHeader
         title="Calendario"
-        subtitle="Todas las sesiones de cuartos de final"
+        subtitle="Todas las sesiones de semifinales"
       />
       <div className="page-content" style={{ padding: "0 20px" }}>
         {todaySession && (
           <Section
             title="Hoy en el Falla"
-            subtitle={`${todaySession.dia} — Última sesión de cuartos`}
+            subtitle={`${todaySession.dia} — Semifinales`}
           >
             <SessionCard session={todaySession} highlight />
           </Section>
@@ -47,7 +47,7 @@ export function CalendarioTab() {
         >
           {showAll
             ? "Ocultar sesiones"
-            : "Ver todas las sesiones de cuartos"}
+            : "Ver todas las sesiones de semifinales"}
           <span
             style={{
               display: "inline-block",
@@ -70,7 +70,7 @@ export function CalendarioTab() {
               gap: 12
             }}
           >
-            {SESIONES_CUARTOS.map(s => (
+            {SESIONES_SEMIFINALES.map(s => (
               <SessionCard
                 key={s.id}
                 session={s}

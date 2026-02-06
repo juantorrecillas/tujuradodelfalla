@@ -1,71 +1,47 @@
-// Modalidades y sus configuraciones
+// Modalidades y sus configuraciones (Semifinales)
 export const MODALIDADES = {
-  coros: { label: "Coro", color: "#6B8FD4", maxPasan: 7 },
-  comparsas: { label: "Comparsa", color: "#9B7EC8", maxPasan: 10 },
-  chirigotas: { label: "Chirigota", color: "#E08B8B", maxPasan: 10 },
-  cuartetos: { label: "Cuarteto", color: "#5DB89C", maxPasan: 5 },
+  coros: { label: "Coro", color: "#6B8FD4", maxPasan: 4 },
+  comparsas: { label: "Comparsa", color: "#9B7EC8", maxPasan: 4 },
+  chirigotas: { label: "Chirigota", color: "#E08B8B", maxPasan: 4 },
+  cuartetos: { label: "Cuarteto", color: "#5DB89C", maxPasan: 4 },
 };
 
-// Agrupaciones por modalidad (Cuartos 2026)
+// Agrupaciones por modalidad (Semifinales 2026)
 export const AGRUPACIONES = {
   coros: [
     "El Sindicato",
-    "Dame Veneno",
     "La ciudad perfecta",
     "ADN",
     "El reino de los cielos",
     "La carnicería",
     "Las mil maravillas",
-    "La esencia",
-    "¡Qué pechá de paja!",
-    "Los mentirosos"
+    "La esencia"
   ],
   comparsas: [
-    "La palabra de Cádiz",
-    "El desguace",
     "El manicomio",
     "La Camorra",
-    "La Marea",
-    "Las Muñecas",
-    "El hombre de hojalata",
     "El patriota",
     "Los Humanos",
     "Los Locos",
     "OBDC me quedo contigo",
-    "Las jorobadas",
-    "Los hijos de Cádiz",
     "El jovencito Frankenstein",
     "Los pájaros carpinteros",
     "DSAS3",
-    "La Carne-Vale",
-    "Los invisibles",
-    "La Biblioteca",
-    "La Condená"
+    "Los invisibles"
   ],
   chirigotas: [
     "Los hombres de Paco",
-    "Los Semicuraos",
-    "Los Camerún de la isla",
-    "Nos hemos venío arriba",
-    "Seguimos cayendo mal",
     "Los Robins",
     "Una chirigota en teoría",
-    "Los Cadisapiens",
     "Los antiguos",
-    "La Purga: Los que no pasan",
-    "Los niños con nombre",
     "Los Compay",
     "Piensa mal y acertarás: Los desconfiaos",
-    "Los muerting planner",
     "Los Amish del mono",
     "Los que van a coger papas",
-    "Los camper del sur",
-    "L@s quince en las algas",
     "Los que la tienen de mármol",
     "Ssshhhhh!!"
   ],
   cuartetos: [
-    "El despertar de la fuerza. Abre el ojete",
     "Crónica de una muerte más que anunciada",
     "Los latin king de la calle Paskin",
     "¡Que no vengan!"
@@ -243,10 +219,80 @@ export const SESIONES_CUARTOS = [
   },
 ];
 
+// Sesiones de Semifinales (8 - 11 feb 2026)
+export const SESIONES_SEMIFINALES = [
+  {
+    id: 1,
+    fecha: "2026-02-08",
+    label: "Función 1",
+    dia: "Domingo 8 febrero",
+    hora: "20:00h",
+    agrupaciones: [
+      { nombre: "El Sindicato", modalidad: "coros" },
+      { nombre: "Los hombres de Paco", modalidad: "chirigotas" },
+      { nombre: "Crónica de una muerte más que anunciada", modalidad: "cuartetos" },
+      { nombre: "El manicomio", modalidad: "comparsas" },
+      { nombre: "La ciudad perfecta", modalidad: "coros" },
+      { nombre: "Los Robins", modalidad: "chirigotas" },
+      { nombre: "La Camorra", modalidad: "comparsas" },
+      { nombre: "Una chirigota en teoría", modalidad: "chirigotas" }
+    ]
+  },
+  {
+    id: 2,
+    fecha: "2026-02-09",
+    label: "Función 2",
+    dia: "Lunes 9 febrero",
+    hora: "20:00h",
+    agrupaciones: [
+      { nombre: "ADN", modalidad: "coros" },
+      { nombre: "El patriota", modalidad: "comparsas" },
+      { nombre: "Los latin king de la calle Paskin", modalidad: "cuartetos" },
+      { nombre: "Los antiguos", modalidad: "chirigotas" },
+      { nombre: "El reino de los cielos", modalidad: "coros" },
+      { nombre: "Los Humanos", modalidad: "comparsas" },
+      { nombre: "Los Compay", modalidad: "chirigotas" },
+      { nombre: "Los Locos", modalidad: "comparsas" }
+    ]
+  },
+  {
+    id: 3,
+    fecha: "2026-02-10",
+    label: "Función 3",
+    dia: "Martes 10 febrero",
+    hora: "20:00h",
+    agrupaciones: [
+      { nombre: "La carnicería", modalidad: "coros" },
+      { nombre: "Piensa mal y acertarás: Los desconfiaos", modalidad: "chirigotas" },
+      { nombre: "OBDC me quedo contigo", modalidad: "comparsas" },
+      { nombre: "Las mil maravillas", modalidad: "coros" },
+      { nombre: "Los Amish del mono", modalidad: "chirigotas" },
+      { nombre: "El jovencito Frankenstein", modalidad: "comparsas" },
+      { nombre: "Los que van a coger papas", modalidad: "chirigotas" }
+    ]
+  },
+  {
+    id: 4,
+    fecha: "2026-02-11",
+    label: "Función 4",
+    dia: "Miércoles 11 febrero",
+    hora: "20:00h",
+    agrupaciones: [
+      { nombre: "La esencia", modalidad: "coros" },
+      { nombre: "Los pájaros carpinteros", modalidad: "comparsas" },
+      { nombre: "¡Que no vengan!", modalidad: "cuartetos" },
+      { nombre: "Los que la tienen de mármol", modalidad: "chirigotas" },
+      { nombre: "DSAS3", modalidad: "comparsas" },
+      { nombre: "Ssshhhhh!!", modalidad: "chirigotas" },
+      { nombre: "Los invisibles", modalidad: "comparsas" }
+    ]
+  }
+];
+
 // Fases del concurso
 export const FECHAS_CLAVE = [
-  { label: "Cuartos de Final", dates: "30 ene – 5 feb", status: "active" },
-  { label: "Semifinales", dates: "8 – 11 feb", status: "upcoming" },
+  { label: "Cuartos de Final", dates: "30 ene – 5 feb", status: "completed" },
+  { label: "Semifinales", dates: "8 – 11 feb", status: "active" },
   { label: "Gran Final", dates: "13 feb", status: "upcoming" },
 ];
 

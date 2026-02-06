@@ -1,11 +1,11 @@
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, FECHAS_CLAVE, SESIONES_CUARTOS } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, FECHAS_CLAVE, SESIONES_SEMIFINALES } from '../data/constants';
 import { Section, Dot } from '../components/ui';
 import { SessionCard } from '../components/SessionCard';
 
 export function InicioTab({ setActive, onAdminClick }) {
   const today = new Date().toISOString().split('T')[0];
-  const todaySession = SESIONES_CUARTOS.find(s => s.fecha === today);
+  const todaySession = SESIONES_SEMIFINALES.find(s => s.fecha === today);
 
   return (
     <div style={{ paddingBottom: 100 }}>
