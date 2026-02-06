@@ -292,21 +292,42 @@ export function RankingTab({ resultados }) {
                                   gap: 4
                                 }}
                               >
-                                {picks.map(pick => (
-                                  <span
-                                    key={pick}
-                                    style={{
-                                      fontSize: 11,
-                                      padding: "3px 8px",
-                                      borderRadius: T.rPill,
-                                      background: `${mod.color}15`,
-                                      color: mod.color,
-                                      fontWeight: 500
-                                    }}
-                                  >
-                                    {pick}
-                                  </span>
-                                ))}
+                                {picks.map(pick => {
+                                  const actualResults = resultados?.quienPasa?.[modKey] || [];
+                                  const isCorrect = actualResults.includes(pick);
+                                  const isWrong = resultados?.quienPasa && !isCorrect;
+
+                                  return (
+                                    <span
+                                      key={pick}
+                                      style={{
+                                        fontSize: 11,
+                                        padding: "3px 8px",
+                                        borderRadius: T.rPill,
+                                        background: isCorrect
+                                          ? `${mod.color}`
+                                          : isWrong
+                                          ? "#FFEBEE"
+                                          : `${mod.color}15`,
+                                        color: isCorrect
+                                          ? "#fff"
+                                          : isWrong
+                                          ? "#D32F2F"
+                                          : mod.color,
+                                        fontWeight: isCorrect ? 700 : 500,
+                                        textDecoration: isWrong ? "line-through" : "none",
+                                        opacity: isWrong ? 0.7 : 1,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 4,
+                                        boxShadow: isCorrect ? `0 2px 4px ${mod.color}40` : "none"
+                                      }}
+                                    >
+                                      {isCorrect && <span>✓</span>}
+                                      {pick}
+                                    </span>
+                                  );
+                                })}
                               </div>
                             </div>
                           );
