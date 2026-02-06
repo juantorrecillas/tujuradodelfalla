@@ -122,7 +122,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 2,
     fecha: "2026-01-31",
-    label: "Función 2",
+    label: "Sesión 2",
     dia: "Sábado 31 enero",
     hora: "20:00h",
     agrupaciones: [
@@ -139,7 +139,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 3,
     fecha: "2026-02-01",
-    label: "Función 3",
+    label: "Sesión 3",
     dia: "Domingo 1 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -156,7 +156,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 4,
     fecha: "2026-02-02",
-    label: "Función 4",
+    label: "Sesión 4",
     dia: "Lunes 2 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -173,7 +173,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 5,
     fecha: "2026-02-03",
-    label: "Función 5",
+    label: "Sesión 5",
     dia: "Martes 3 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -190,7 +190,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 6,
     fecha: "2026-02-04",
-    label: "Función 6",
+    label: "Sesión 6",
     dia: "Miércoles 4 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -206,7 +206,7 @@ export const SESIONES_CUARTOS = [
   {
     id: 7,
     fecha: "2026-02-05",
-    label: "Función 7",
+    label: "Sesión 7",
     dia: "Jueves 5 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -226,7 +226,7 @@ export const SESIONES_SEMIFINALES = [
   {
     id: 1,
     fecha: "2026-02-08",
-    label: "Función 1",
+    label: "Sesión 1",
     dia: "Domingo 8 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -243,7 +243,7 @@ export const SESIONES_SEMIFINALES = [
   {
     id: 2,
     fecha: "2026-02-09",
-    label: "Función 2",
+    label: "Sesión 2",
     dia: "Lunes 9 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -260,7 +260,7 @@ export const SESIONES_SEMIFINALES = [
   {
     id: 3,
     fecha: "2026-02-10",
-    label: "Función 3",
+    label: "Sesión 3",
     dia: "Martes 10 febrero",
     hora: "20:00h",
     agrupaciones: [
@@ -276,7 +276,7 @@ export const SESIONES_SEMIFINALES = [
   {
     id: 4,
     fecha: "2026-02-11",
-    label: "Función 4",
+    label: "Sesión 4",
     dia: "Miércoles 11 febrero",
     hora: "20:00h",
     agrupaciones: [

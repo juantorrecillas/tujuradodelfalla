@@ -6,6 +6,9 @@ import { SessionCard } from '../components/SessionCard';
 export function InicioTab({ setActive, onAdminClick }) {
   const today = new Date().toISOString().split('T')[0];
   const todaySession = SESIONES_SEMIFINALES.find(s => s.fecha === today);
+  const nextSession = SESIONES_SEMIFINALES.find(s => s.fecha > today);
+  const pastSessions = SESIONES_SEMIFINALES.filter(s => s.fecha < today);
+  const lastSession = pastSessions[pastSessions.length - 1];
 
   return (
     <div style={{ paddingBottom: 100 }}>
@@ -159,9 +162,59 @@ export function InicioTab({ setActive, onAdminClick }) {
         </Section>
 
         {/* Hoy en el Falla */}
-        {todaySession && (
+        {todaySession ? (
           <Section title="Hoy en el Falla">
             <SessionCard session={todaySession} highlight />
+          </Section>
+        ) : (
+          <Section title="Hoy en el Falla">
+            <div
+              style={{
+                background: T.bgCard,
+                borderRadius: T.r,
+                padding: "20px",
+                border: `1px solid ${T.border}`,
+                boxShadow: T.shadow,
+                textAlign: "center"
+              }}
+            >
+              <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>
+                🙍‍♂️🙍‍♀️
+              </div>
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 15,
+                  color: T.text,
+                  marginBottom: 6
+                }}
+              >
+                No hay sesión hoy
+              </div>
+              <div
+                style={{
+                  fontSize: 13,
+                  color: T.textSec,
+                  lineHeight: 1.6
+                }}
+              >
+                {nextSession ? (
+                  <>
+                    Próxima sesión: <strong style={{ color: T.text }}>{nextSession.dia}</strong>
+                    <br />
+                    <span style={{ fontSize: 12 }}>{nextSession.hora}</span>
+                  </>
+                ) : lastSession ? (
+                  <>
+                    Las semifinales han finalizado.
+                    <br />
+                    <span style={{ fontSize: 12 }}>Última sesión: {lastSession.dia}</span>
+                  </>
+                ) : (
+                  "Consulta el calendario completo en la pestaña Calendario."
+                )}
+              </div>
+            </div>
           </Section>
         )}
 
