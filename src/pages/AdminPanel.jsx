@@ -1,22 +1,31 @@
 import { useState, useEffect } from 'react';
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, ADMIN_PIN } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, AGRUPACIONES_CUARTOS, MAX_PASAN, ADMIN_PIN } from '../data/constants';
 import { PageHeader, Section, Dot } from '../components/ui';
 import { fsGet, fsSet, fsSubscribe } from '../lib/firebase';
+import { migratePredictionsToPhases } from '../hooks/useAppState';
+
+const FASES_CONFIG = {
+  cuartos: { label: "Cuartos", agrupaciones: AGRUPACIONES_CUARTOS },
+  semifinales: { label: "Semifinales", agrupaciones: AGRUPACIONES }
+};
 
 export function AdminPanel({ onClose }) {
   const [pin, setPin] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-  const [config, setConfig] = useState({ fase: 'cuartos', locked: false, resultados: null });
+  const [config, setConfig] = useState({ fase: 'semifinales', locked: false, resultados: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedMod, setSelectedMod] = useState("coros");
+  const [selectedFase, setSelectedFase] = useState("cuartos");
   const [selectedPasan, setSelectedPasan] = useState({
     coros: [],
     comparsas: [],
     chirigotas: [],
     cuartetos: []
   });
+  const [migrating, setMigrating] = useState(false);
+  const [migrationDone, setMigrationDone] = useState(false);
 
   // Cargar config al autenticarse
   useEffect(() => {
@@ -25,15 +34,30 @@ export function AdminPanel({ onClose }) {
     const unsubscribe = fsSubscribe('config', 'settings', (data) => {
       if (data) {
         setConfig(data);
-        if (data.resultados?.quienPasa) {
-          setSelectedPasan(data.resultados.quienPasa);
+        // Cargar resultados de la fase seleccionada
+        const faseResults = data.resultados?.[selectedFase]?.quienPasa;
+        if (faseResults) {
+          setSelectedPasan(faseResults);
+        } else {
+          setSelectedPasan({ coros: [], comparsas: [], chirigotas: [], cuartetos: [] });
         }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [authenticated]);
+  }, [authenticated, selectedFase]);
+
+  // Actualizar selectedPasan cuando cambia la fase
+  useEffect(() => {
+    if (!config.resultados) return;
+    const faseResults = config.resultados[selectedFase]?.quienPasa;
+    if (faseResults) {
+      setSelectedPasan(faseResults);
+    } else {
+      setSelectedPasan({ coros: [], comparsas: [], chirigotas: [], cuartetos: [] });
+    }
+  }, [selectedFase, config.resultados]);
 
   const handleLogin = () => {
     if (pin === ADMIN_PIN) {
@@ -50,10 +74,14 @@ export function AdminPanel({ onClose }) {
   };
 
   const toggleAgrupacion = (modalidad, nombre) => {
+    const maxPasan = MAX_PASAN[selectedFase][modalidad];
     setSelectedPasan(prev => {
       const current = prev[modalidad] || [];
       if (current.includes(nombre)) {
         return { ...prev, [modalidad]: current.filter(n => n !== nombre) };
+      }
+      if (current.length >= maxPasan) {
+        return prev; // Ya llegamos al máximo
       }
       return { ...prev, [modalidad]: [...current, nombre] };
     });
@@ -65,25 +93,47 @@ export function AdminPanel({ onClose }) {
       ...config,
       resultados: {
         ...config.resultados,
-        quienPasa: selectedPasan
+        [selectedFase]: {
+          ...(config.resultados?.[selectedFase] || {}),
+          quienPasa: selectedPasan
+        }
       }
     };
     await fsSet('config', 'settings', newConfig);
     setSaving(false);
-    alert("Resultados guardados");
+    alert(`Resultados de ${FASES_CONFIG[selectedFase].label} guardados`);
   };
 
   const clearResultados = async () => {
-    if (!confirm("¿Seguro que quieres borrar los resultados?")) return;
+    if (!confirm(`¿Seguro que quieres borrar los resultados de ${FASES_CONFIG[selectedFase].label}?`)) return;
     setSaving(true);
     const newConfig = {
       ...config,
-      resultados: null
+      resultados: {
+        ...config.resultados,
+        [selectedFase]: null
+      }
     };
     await fsSet('config', 'settings', newConfig);
     setSelectedPasan({ coros: [], comparsas: [], chirigotas: [], cuartetos: [] });
     setSaving(false);
   };
+
+  const handleMigration = async () => {
+    if (!confirm("¿Migrar predicciones antiguas al formato por fases? (Solo necesario una vez)")) return;
+    setMigrating(true);
+    try {
+      await migratePredictionsToPhases();
+      setMigrationDone(true);
+      alert("Migración completada. Las predicciones antiguas ahora están en 'Cuartos'.");
+    } catch (error) {
+      alert("Error en migración: " + error.message);
+    }
+    setMigrating(false);
+  };
+
+  const currentAgrupaciones = FASES_CONFIG[selectedFase].agrupaciones;
+  const maxPasanForMod = MAX_PASAN[selectedFase][selectedMod];
 
   // Pantalla de login
   if (!authenticated) {
@@ -243,6 +293,42 @@ export function AdminPanel({ onClose }) {
               title="Resultados oficiales"
               subtitle="Selecciona qué agrupaciones han pasado de fase"
             >
+              {/* Selector de fase para resultados */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: 8,
+                  marginBottom: 16,
+                  background: T.bgWarm,
+                  borderRadius: T.rSm,
+                  padding: 4,
+                  border: `1px solid ${T.border}`
+                }}
+              >
+                {Object.entries(FASES_CONFIG).map(([faseKey, faseData]) => (
+                  <button
+                    key={faseKey}
+                    onClick={() => setSelectedFase(faseKey)}
+                    style={{
+                      flex: 1,
+                      padding: "10px",
+                      borderRadius: 8,
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: T.font,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      background: selectedFase === faseKey ? T.bgCard : "transparent",
+                      color: selectedFase === faseKey ? T.text : T.textSec,
+                      boxShadow: selectedFase === faseKey ? T.shadow : "none"
+                    }}
+                  >
+                    {faseData.label}
+                    {config.resultados?.[faseKey]?.quienPasa && " ✓"}
+                  </button>
+                ))}
+              </div>
+
               {/* Selector de modalidad */}
               <div
                 style={{
@@ -272,7 +358,7 @@ export function AdminPanel({ onClose }) {
                         selectedMod === key ? `0 2px 8px ${m.color}35` : T.shadow
                     }}
                   >
-                    {m.label} ({(selectedPasan[key] || []).length}/{m.maxPasan})
+                    {m.label} ({(selectedPasan[key] || []).length}/{MAX_PASAN[selectedFase][key]})
                   </button>
                 ))}
               </div>
@@ -288,7 +374,7 @@ export function AdminPanel({ onClose }) {
                   overflowY: "auto"
                 }}
               >
-                {AGRUPACIONES[selectedMod].map(nombre => {
+                {currentAgrupaciones[selectedMod].map(nombre => {
                   const selected = (selectedPasan[selectedMod] || []).includes(nombre);
                   return (
                     <button
@@ -381,7 +467,7 @@ export function AdminPanel({ onClose }) {
                     color: T.textLight
                   }}
                 >
-                  {saving ? "Guardando..." : "Guardar resultados"}
+                  {saving ? "Guardando..." : `Guardar ${FASES_CONFIG[selectedFase].label}`}
                 </button>
                 <button
                   onClick={clearResultados}
@@ -399,6 +485,45 @@ export function AdminPanel({ onClose }) {
                   }}
                 >
                   Borrar
+                </button>
+              </div>
+            </Section>
+
+            {/* Migración de datos */}
+            <Section title="Mantenimiento">
+              <div
+                style={{
+                  background: T.bgCard,
+                  borderRadius: T.r,
+                  padding: 16,
+                  border: `1px solid ${T.border}`,
+                  boxShadow: T.shadow
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 13, color: T.text, marginBottom: 8 }}>
+                  Migrar predicciones antiguas
+                </div>
+                <div style={{ fontSize: 12, color: T.textSec, marginBottom: 12, lineHeight: 1.5 }}>
+                  Si hay predicciones del formato antiguo (sin separación por fases),
+                  este botón las moverá a "Cuartos". Solo es necesario ejecutarlo una vez.
+                </div>
+                <button
+                  onClick={handleMigration}
+                  disabled={migrating || migrationDone}
+                  style={{
+                    padding: "10px 16px",
+                    borderRadius: T.rSm,
+                    border: "none",
+                    cursor: migrating || migrationDone ? "not-allowed" : "pointer",
+                    fontFamily: T.font,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    background: migrationDone ? "#5DB89C" : T.wine,
+                    color: T.textLight,
+                    opacity: migrationDone ? 0.7 : 1
+                  }}
+                >
+                  {migrating ? "Migrando..." : migrationDone ? "Migración completada ✓" : "Ejecutar migración"}
                 </button>
               </div>
             </Section>
@@ -421,8 +546,11 @@ export function AdminPanel({ onClose }) {
                 <strong>Predicciones:</strong>{" "}
                 {config.locked ? "Bloqueadas" : "Abiertas"}
                 <br />
-                <strong>Resultados:</strong>{" "}
-                {config.resultados?.quienPasa ? "Publicados" : "Pendientes"}
+                <strong>Resultados Cuartos:</strong>{" "}
+                {config.resultados?.cuartos?.quienPasa ? "Publicados" : "Pendientes"}
+                <br />
+                <strong>Resultados Semifinales:</strong>{" "}
+                {config.resultados?.semifinales?.quienPasa ? "Publicados" : "Pendientes"}
               </div>
             </Section>
           </>

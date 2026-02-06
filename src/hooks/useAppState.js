@@ -26,7 +26,6 @@ export function useUser() {
 
   const logout = useCallback(() => {
     setUserName(null);
-    // No borramos localStorage para que pueda volver con el mismo nombre
   }, []);
 
   return { userName, loading, login, logout };
@@ -37,14 +36,13 @@ export function useUser() {
  */
 export function useConfig() {
   const [config, setConfig] = useState({
-    fase: 'cuartos',
+    fase: 'semifinales',
     locked: false,
     resultados: null
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Suscribirse a cambios en tiempo real
     const unsubscribe = fsSubscribe('config', 'settings', (data) => {
       if (data) {
         setConfig(data);
@@ -64,9 +62,9 @@ export function useConfig() {
 }
 
 /**
- * Hook para manejar las predicciones de "quién pasa"
+ * Hook para manejar las predicciones de "quién pasa" - CON HISTÓRICO POR FASE
  */
-export function usePredictions(userName) {
+export function usePredictions(userName, fase = 'semifinales') {
   const [allPredictions, setAllPredictions] = useState({});
   const [myPredictions, setMyPredictions] = useState({
     coros: [],
@@ -81,26 +79,40 @@ export function usePredictions(userName) {
     const unsubscribe = fsSubscribe('predictions', 'all', (data) => {
       if (data) {
         setAllPredictions(data);
-        // Actualizar mis predicciones si estoy logueado
+        // Actualizar mis predicciones de la fase actual si estoy logueado
         if (userName && data[userName]) {
-          const { updatedAt, ...rest } = data[userName];
-          setMyPredictions(prev => ({ ...prev, ...rest }));
+          const playerData = data[userName];
+          // Verificar si tiene estructura por fases
+          if (playerData[fase]) {
+            const { updatedAt, ...rest } = playerData[fase];
+            setMyPredictions(prev => ({ ...prev, ...rest }));
+          } else if (!playerData.cuartos && !playerData.semifinales) {
+            // Formato antiguo (sin fases) - compatibilidad
+            const { updatedAt, ...rest } = playerData;
+            setMyPredictions(prev => ({ ...prev, ...rest }));
+          }
         }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [userName]);
+  }, [userName, fase]);
 
-  // Guardar predicciones con debounce
+  // Guardar predicciones en la fase actual
   const savePredictions = useCallback(async (predictions) => {
     if (!userName) return;
 
     const all = await fsGet('predictions', 'all') || {};
-    all[userName] = { ...predictions, updatedAt: Date.now() };
+
+    // Guardar en estructura por fases
+    if (!all[userName]) {
+      all[userName] = {};
+    }
+
+    all[userName][fase] = { ...predictions, updatedAt: Date.now() };
     await fsSet('predictions', 'all', all);
-  }, [userName]);
+  }, [userName, fase]);
 
   // Toggle una agrupación
   const togglePrediction = useCallback((modalidad, nombre, maxPasan) => {
@@ -113,12 +125,10 @@ export function usePredictions(userName) {
       } else if (current.length < maxPasan) {
         updated = [...current, nombre];
       } else {
-        return prev; // Límite alcanzado
+        return prev;
       }
 
       const newPredictions = { ...prev, [modalidad]: updated };
-
-      // Guardar con debounce
       setTimeout(() => savePredictions(newPredictions), 600);
 
       return newPredictions;
@@ -135,6 +145,27 @@ export function usePredictions(userName) {
 }
 
 /**
+ * Helper para obtener predicciones de una fase específica de un jugador
+ */
+export function getPlayerPredictionsForPhase(playerData, fase) {
+  if (!playerData) return null;
+
+  // Si tiene estructura por fases
+  if (playerData[fase]) {
+    const { updatedAt, ...rest } = playerData[fase];
+    return rest;
+  }
+
+  // Formato antiguo (sin fases) - asumir que son de cuartos
+  if (!playerData.cuartos && !playerData.semifinales) {
+    const { updatedAt, ...rest } = playerData;
+    return fase === 'cuartos' ? rest : null;
+  }
+
+  return null;
+}
+
+/**
  * Hook para manejar las puntuaciones predichas
  */
 export function useScores(userName) {
@@ -142,7 +173,6 @@ export function useScores(userName) {
   const [myScores, setMyScores] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Suscribirse a todas las puntuaciones en tiempo real
   useEffect(() => {
     const unsubscribe = fsSubscribe('scores', 'all', (data) => {
       if (data) {
@@ -158,7 +188,6 @@ export function useScores(userName) {
     return () => unsubscribe();
   }, [userName]);
 
-  // Guardar puntuaciones
   const saveScores = useCallback(async (scores) => {
     if (!userName) return;
 
@@ -167,7 +196,6 @@ export function useScores(userName) {
     await fsSet('scores', 'all', all);
   }, [userName]);
 
-  // Actualizar una puntuación específica
   const setScore = useCallback((modalidad, agrupacion, key, value, maxValue) => {
     const num = Math.min(Math.max(0, Number(value) || 0), maxValue);
 
@@ -183,7 +211,6 @@ export function useScores(userName) {
         }
       };
 
-      // Guardar con debounce
       setTimeout(() => saveScores(newScores), 600);
 
       return newScores;
@@ -197,4 +224,30 @@ export function useScores(userName) {
     setScore,
     setMyScores
   };
+}
+
+/**
+ * Función para migrar predicciones del formato antiguo al nuevo (por fases)
+ * Ejecutar UNA VEZ desde el panel admin o consola
+ */
+export async function migratePredictionsToPhases() {
+  const all = await fsGet('predictions', 'all') || {};
+  const migrated = {};
+
+  for (const [playerName, playerData] of Object.entries(all)) {
+    // Si ya tiene estructura por fases, mantener
+    if (playerData.cuartos || playerData.semifinales) {
+      migrated[playerName] = playerData;
+    } else {
+      // Formato antiguo - mover a cuartos
+      const { updatedAt, ...predictions } = playerData;
+      migrated[playerName] = {
+        cuartos: { ...predictions, updatedAt }
+      };
+    }
+  }
+
+  await fsSet('predictions', 'all', migrated);
+  console.log('Migration complete!', migrated);
+  return migrated;
 }

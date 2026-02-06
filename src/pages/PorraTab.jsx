@@ -123,7 +123,7 @@ function QuienPasaView({ userName, locked }) {
   const [activeMod, setActiveMod] = useState("comparsas");
   const [showOthers, setShowOthers] = useState(false);
 
-  const { allPredictions, myPredictions, togglePrediction } = usePredictions(userName);
+  const { allPredictions, myPredictions, togglePrediction } = usePredictions(userName, 'semifinales');
 
   const mod = MODALIDADES[activeMod];
   const agrs = AGRUPACIONES[activeMod];

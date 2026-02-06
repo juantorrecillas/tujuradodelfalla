@@ -3,11 +3,25 @@ import { T } from '../data/theme';
 import { MODALIDADES } from '../data/constants';
 import { PageHeader, Section, Dot } from '../components/ui';
 import { fsSubscribe } from '../lib/firebase';
+import { getPlayerPredictionsForPhase } from '../hooks/useAppState';
+
+// Configuración de fases con sus resultados y max por modalidad
+const FASES_CONFIG = {
+  cuartos: {
+    label: "Cuartos",
+    maxPasan: { coros: 7, comparsas: 10, chirigotas: 10, cuartetos: 5 }
+  },
+  semifinales: {
+    label: "Semifinales",
+    maxPasan: { coros: 4, comparsas: 4, chirigotas: 4, cuartetos: 4 }
+  }
+};
 
 export function RankingTab({ resultados }) {
   const [allPredictions, setAllPredictions] = useState({});
   const [loading, setLoading] = useState(true);
   const [expandedPlayer, setExpandedPlayer] = useState(null);
+  const [selectedFase, setSelectedFase] = useState("cuartos");
 
   useEffect(() => {
     const unsubscribe = fsSubscribe('predictions', 'all', (data) => {
@@ -17,14 +31,20 @@ export function RankingTab({ resultados }) {
     return () => unsubscribe();
   }, []);
 
-  // Calcular aciertos si hay resultados
-  const calculateScore = (playerPredictions) => {
-    if (!resultados?.quienPasa) return null;
+  // Calcular aciertos para una fase específica
+  const calculateScoreForFase = (playerData, fase) => {
+    // Buscar resultados en el nuevo formato (resultados.cuartos.quienPasa)
+    // o en el formato antiguo (resultados.quienPasa)
+    const faseResultados = resultados?.[fase]?.quienPasa || (fase === 'cuartos' ? resultados?.quienPasa : null);
+    if (!faseResultados) return null;
+
+    const predictions = getPlayerPredictionsForPhase(playerData, fase);
+    if (!predictions) return 0;
 
     let aciertos = 0;
     Object.keys(MODALIDADES).forEach(mod => {
-      const predicted = playerPredictions[mod] || [];
-      const actual = resultados.quienPasa[mod] || [];
+      const predicted = predictions[mod] || [];
+      const actual = faseResultados[mod] || [];
       predicted.forEach(p => {
         if (actual.includes(p)) aciertos++;
       });
@@ -32,25 +52,36 @@ export function RankingTab({ resultados }) {
     return aciertos;
   };
 
-  // Preparar lista de jugadores
+  // Preparar lista de jugadores con scores por fase
   const players = Object.entries(allPredictions)
     .map(([name, data]) => {
-      const { updatedAt, ...mods } = data;
-      const totalPicks = Object.values(mods).reduce(
-        (s, arr) => s + (Array.isArray(arr) ? arr.length : 0),
-        0
-      );
-      const completedMods = Object.entries(mods)
-        .filter(
-          ([k, arr]) =>
-            MODALIDADES[k] && Array.isArray(arr) && arr.length > 0
-        )
-        .map(([k]) => k);
+      // Contar predicciones totales
+      let totalPicks = 0;
+      let completedMods = [];
 
-      const score = calculateScore(mods);
+      // Predicciones de la fase seleccionada
+      const fasePredictions = getPlayerPredictionsForPhase(data, selectedFase);
+      if (fasePredictions) {
+        Object.entries(fasePredictions).forEach(([k, arr]) => {
+          if (MODALIDADES[k] && Array.isArray(arr)) {
+            totalPicks += arr.length;
+            if (arr.length > 0) completedMods.push(k);
+          }
+        });
+      }
 
-      return { name, totalPicks, completedMods, score, predictions: mods };
+      const scoreForFase = calculateScoreForFase(data, selectedFase);
+
+      return {
+        name,
+        totalPicks,
+        completedMods,
+        score: scoreForFase,
+        predictions: fasePredictions || {},
+        rawData: data
+      };
     })
+    .filter(p => p.totalPicks > 0) // Solo mostrar jugadores con predicciones en esta fase
     .sort((a, b) => {
       if (a.score !== null && b.score !== null) {
         return b.score - a.score;
@@ -58,7 +89,10 @@ export function RankingTab({ resultados }) {
       return b.totalPicks - a.totalPicks;
     });
 
-  const hasResults = resultados?.quienPasa;
+  // Buscar resultados en el nuevo formato o formato antiguo
+  const faseResultados = resultados?.[selectedFase]?.quienPasa ||
+    (selectedFase === 'cuartos' ? resultados?.quienPasa : null);
+  const hasResults = !!faseResultados;
 
   const toggleExpand = (name) => {
     setExpandedPlayer(expandedPlayer === name ? null : name);
@@ -67,24 +101,63 @@ export function RankingTab({ resultados }) {
   return (
     <div style={{ paddingBottom: 100 }}>
       <PageHeader title="Clasificación" subtitle="Ranking de participantes" />
+
       <div className="page-content" style={{ padding: "0 20px" }}>
+        {/* Selector de fase */}
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            marginBottom: 20,
+            background: T.bgWarm,
+            borderRadius: T.rSm,
+            padding: 4,
+            border: `1px solid ${T.border}`
+          }}
+        >
+          {Object.entries(FASES_CONFIG).map(([faseKey, faseData]) => (
+            <button
+              key={faseKey}
+              onClick={() => {
+                setSelectedFase(faseKey);
+                setExpandedPlayer(null);
+              }}
+              style={{
+                flex: 1,
+                padding: "10px",
+                borderRadius: 8,
+                border: "none",
+                cursor: "pointer",
+                fontFamily: T.font,
+                fontWeight: 600,
+                fontSize: 13,
+                background: selectedFase === faseKey ? T.bgCard : "transparent",
+                color: selectedFase === faseKey ? T.text : T.textSec,
+                boxShadow: selectedFase === faseKey ? T.shadow : "none"
+              }}
+            >
+              {faseData.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Banner de estado */}
         {!hasResults ? (
           <div
             style={{
               background: `linear-gradient(135deg, #6B2C4A, #4A1A30)`,
               borderRadius: T.r,
-              padding: "22px 20px",
+              padding: "18px 20px",
               color: T.textLight,
-              marginBottom: 24,
+              marginBottom: 20,
               boxShadow: T.shadowMd
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
-              Esperando al fallo del jurado
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+              Esperando resultados de {FASES_CONFIG[selectedFase].label}
             </div>
-            <div style={{ fontSize: 13, opacity: 0.6, lineHeight: 1.6 }}>
-              Los aciertos se contarán cuando se publiquen los resultados de
-              cada fase. Los puntos se compararán al final del concurso.
+            <div style={{ fontSize: 12, opacity: 0.7 }}>
+              Los aciertos se contarán cuando se publiquen los resultados.
             </div>
           </div>
         ) : (
@@ -92,17 +165,17 @@ export function RankingTab({ resultados }) {
             style={{
               background: `linear-gradient(135deg, #5DB89C, #3D8B73)`,
               borderRadius: T.r,
-              padding: "22px 20px",
+              padding: "18px 20px",
               color: T.textLight,
-              marginBottom: 24,
+              marginBottom: 20,
               boxShadow: T.shadowMd
             }}
           >
-            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>
-              Resultados publicados
+            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
+              Resultados de {FASES_CONFIG[selectedFase].label} publicados
             </div>
-            <div style={{ fontSize: 13, opacity: 0.8, lineHeight: 1.6 }}>
-              Los aciertos de "¿Quién pasa?" ya están contabilizados.
+            <div style={{ fontSize: 12, opacity: 0.8 }}>
+              Los aciertos ya están contabilizados.
             </div>
           </div>
         )}
@@ -111,13 +184,7 @@ export function RankingTab({ resultados }) {
       <div className="page-content" style={{ padding: "0 20px" }}>
         <Section title="Participantes" subtitle="Toca en un nombre para ver sus predicciones">
           {loading ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "40px 20px",
-                color: T.textSec
-              }}
-            >
+            <div style={{ textAlign: "center", padding: "40px 20px", color: T.textSec }}>
               <div
                 className="spin"
                 style={{
@@ -141,12 +208,10 @@ export function RankingTab({ resultados }) {
                 lineHeight: 1.6
               }}
             >
-              Nadie ha hecho su porra todavía.
+              Nadie ha hecho predicciones de {FASES_CONFIG[selectedFase].label} todavía.
             </div>
           ) : (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: 8 }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {players.map((p, i) => {
                 const isExpanded = expandedPlayer === p.name;
                 return (
@@ -200,9 +265,7 @@ export function RankingTab({ resultados }) {
                         {i + 1}
                       </div>
                       <div style={{ flex: 1 }}>
-                        <div
-                          style={{ fontWeight: 700, fontSize: 14, color: T.text }}
-                        >
+                        <div style={{ fontWeight: 700, fontSize: 14, color: T.text }}>
                           {p.name}
                         </div>
                         <div
@@ -217,13 +280,7 @@ export function RankingTab({ resultados }) {
                           {p.completedMods.map(k => (
                             <Dot key={k} color={MODALIDADES[k].color} size={7} />
                           ))}
-                          <span
-                            style={{
-                              fontSize: 11,
-                              color: T.textSec,
-                              marginLeft: 4
-                            }}
-                          >
+                          <span style={{ fontSize: 11, color: T.textSec, marginLeft: 4 }}>
                             {p.totalPicks} predicciones
                           </span>
                         </div>
@@ -264,6 +321,8 @@ export function RankingTab({ resultados }) {
                           const picks = p.predictions[modKey] || [];
                           if (picks.length === 0) return null;
 
+                          const maxPasan = FASES_CONFIG[selectedFase].maxPasan[modKey];
+
                           return (
                             <div key={modKey} style={{ marginBottom: 12 }}>
                               <div
@@ -282,7 +341,7 @@ export function RankingTab({ resultados }) {
                                     color: mod.color
                                   }}
                                 >
-                                  {mod.label}s ({picks.length}/{mod.maxPasan})
+                                  {mod.label}s ({picks.length}/{maxPasan})
                                 </span>
                               </div>
                               <div
@@ -293,9 +352,9 @@ export function RankingTab({ resultados }) {
                                 }}
                               >
                                 {picks.map(pick => {
-                                  const actualResults = resultados?.quienPasa?.[modKey] || [];
+                                  const actualResults = faseResultados?.[modKey] || [];
                                   const isCorrect = actualResults.includes(pick);
-                                  const isWrong = resultados?.quienPasa && !isCorrect;
+                                  const isWrong = faseResultados && !isCorrect;
 
                                   return (
                                     <span
@@ -341,7 +400,7 @@ export function RankingTab({ resultados }) {
                               fontStyle: "italic"
                             }}
                           >
-                            Sin predicciones todavía
+                            Sin predicciones en esta fase
                           </div>
                         )}
                       </div>

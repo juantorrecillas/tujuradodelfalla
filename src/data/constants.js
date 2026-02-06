@@ -8,6 +8,8 @@ export const MODALIDADES = {
 
 // Agrupaciones por modalidad (Semifinales 2026)
 export const AGRUPACIONES = {
+  // AGRUPACIONES es la fase actual (semifinales)
+  // Para cuartos, ver AGRUPACIONES_CUARTOS más abajo
   coros: [
     "El Sindicato",
     "La ciudad perfecta",
@@ -300,6 +302,37 @@ export const FECHAS_CLAVE = [
 export const MAX_PASAN = {
   cuartos: { coros: 7, comparsas: 10, chirigotas: 10, cuartetos: 5 },
   semifinales: { coros: 4, comparsas: 4, chirigotas: 4, cuartetos: 4 },
+};
+
+// Agrupaciones de Cuartos (para histórico de resultados)
+export const AGRUPACIONES_CUARTOS = {
+  coros: [
+    "El Sindicato", "Dame Veneno", "La ciudad perfecta", "ADN",
+    "El reino de los cielos", "La carnicería", "Las mil maravillas",
+    "La esencia", "¡Qué pechá de paja!", "Los mentirosos"
+  ],
+  comparsas: [
+    "La palabra de Cádiz", "El desguace", "El manicomio", "La Camorra",
+    "La Marea", "Las Muñecas", "El hombre de hojalata", "El patriota",
+    "Los Humanos", "Los Locos", "OBDC me quedo contigo", "Las jorobadas",
+    "Los hijos de Cádiz", "El jovencito Frankenstein", "Los pájaros carpinteros",
+    "DSAS3", "La Carne-Vale", "Los invisibles", "La Biblioteca", "La Condená"
+  ],
+  chirigotas: [
+    "Los hombres de Paco", "Los Semicuraos", "Los Camerún de la isla",
+    "Nos hemos venío arriba", "Seguimos cayendo mal", "Los Robins",
+    "Una chirigota en teoría", "Los Cadisapiens", "Los antiguos",
+    "La Purga: Los que no pasan", "Los niños con nombre", "Los Compay",
+    "Piensa mal y acertarás: Los desconfiaos", "Los muerting planner",
+    "Los Amish del mono", "Los que van a coger papas", "Los camper del sur",
+    "L@s quince en las algas", "Los que la tienen de mármol", "Ssshhhhh!!"
+  ],
+  cuartetos: [
+    "El despertar de la fuerza. Abre el ojete",
+    "Crónica de una muerte más que anunciada",
+    "Los latin king de la calle Paskin",
+    "¡Que no vengan!"
+  ],
 };
 
 // PIN de admin (configura VITE_ADMIN_PIN en Vercel)
