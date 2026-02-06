@@ -4,6 +4,7 @@ import { BottomNav } from './components/BottomNav';
 import { InicioTab } from './pages/InicioTab';
 import { CalendarioTab } from './pages/CalendarioTab';
 import { PorraTab } from './pages/PorraTab';
+import { JuecesTab } from './pages/JuecesTab';
 import { RankingTab } from './pages/RankingTab';
 import { AdminPanel } from './pages/AdminPanel';
 import { useUser, useConfig } from './hooks/useAppState';
@@ -56,6 +57,7 @@ export default function App() {
             locked={config.locked}
           />
         )}
+        {activeTab === "jueces" && <JuecesTab />}
         {activeTab === "ranking" && (
           <RankingTab resultados={config.resultados} />
         )}

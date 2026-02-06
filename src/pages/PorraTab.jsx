@@ -496,30 +496,33 @@ function PuntosView({ userName, locked }) {
                 </span>
               </div>
             </div>
-            <div style={{ padding: "8px 16px" }}>
-              {scoreDef.map((s, i) => {
+            <div style={{
+              padding: "10px 16px",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: "8px"
+            }}>
+              {scoreDef.map((s) => {
                 const val = myScores[activeMod]?.[selectedAgr]?.[s.key] ?? "";
                 return (
                   <div
                     key={s.key}
                     style={{
                       display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      padding: "10px 0",
-                      borderBottom:
-                        i < scoreDef.length - 1
-                          ? `1px solid ${T.border}40`
-                          : "none"
+                      flexDirection: "column",
+                      padding: "10px",
+                      background: T.bgWarm,
+                      borderRadius: 8,
+                      gap: 8
                     }}
                   >
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <div
-                        style={{ fontSize: 13, fontWeight: 500, color: T.text }}
+                        style={{ fontSize: 12, fontWeight: 500, color: T.text, marginBottom: 2 }}
                       >
                         {s.label}
                       </div>
-                      <div style={{ fontSize: 11, color: T.textSec }}>
+                      <div style={{ fontSize: 10, color: T.textSec }}>
                         máx. {s.max}
                       </div>
                     </div>
@@ -535,7 +538,7 @@ function PuntosView({ userName, locked }) {
                       disabled={locked}
                       placeholder="—"
                       style={{
-                        width: 60,
+                        width: "100%",
                         padding: "8px",
                         borderRadius: 8,
                         textAlign: "center",
@@ -543,7 +546,7 @@ function PuntosView({ userName, locked }) {
                           val !== "" ? mod.color + "40" : T.border
                         }`,
                         background:
-                          val !== "" ? `${mod.color}06` : T.bgWarm,
+                          val !== "" ? `${mod.color}06` : "#fff",
                         fontFamily: T.font,
                         fontSize: 14,
                         fontWeight: 600,

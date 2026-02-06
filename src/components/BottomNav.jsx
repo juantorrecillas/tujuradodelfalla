@@ -48,6 +48,15 @@ const navIcon = (id, active) => {
           <path d="M18 2H6v7a6 6 0 0012 0V2z" />
         </svg>
       );
+    case "jueces":
+      return (
+        <svg {...p}>
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+          <path d="M16 3.13a4 4 0 010 7.75" />
+        </svg>
+      );
     default:
       return null;
   }
@@ -57,6 +66,7 @@ const labels = {
   inicio: "Inicio",
   calendario: "Calendario",
   porra: "Porra",
+  jueces: "Jueces",
   ranking: "Ranking"
 };
 
@@ -99,7 +109,7 @@ export function BottomNav({ active, setActive }) {
         </div>
       </div>
 
-      {["inicio", "calendario", "porra", "ranking"].map((id) => (
+      {["inicio", "calendario", "porra", "jueces", "ranking"].map((id) => (
         <button
           key={id}
           onClick={() => setActive(id)}
