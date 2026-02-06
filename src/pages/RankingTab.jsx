@@ -165,9 +165,6 @@ export function RankingTab({ resultados }) {
             <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
               Ranking actualizado
             </div>
-            <div style={{ fontSize: 12, opacity: 0.8 }}>
-              Puntuación combinada de todas las fases con resultados.
-            </div>
           </div>
         )}
       </div>
