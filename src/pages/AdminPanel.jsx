@@ -3,7 +3,7 @@ import { T } from '../data/theme';
 import { MODALIDADES, AGRUPACIONES, AGRUPACIONES_CUARTOS, MAX_PASAN, ADMIN_PIN } from '../data/constants';
 import { PageHeader, Section, Dot } from '../components/ui';
 import { fsGet, fsSet, fsSubscribe } from '../lib/firebase';
-import { migratePredictionsToPhases } from '../hooks/useAppState';
+import { migratePredictionsToPhases, fixMoveSemifinalsToQuarters } from '../hooks/useAppState';
 
 const FASES_CONFIG = {
   cuartos: { label: "Cuartos", agrupaciones: AGRUPACIONES_CUARTOS },
@@ -26,6 +26,8 @@ export function AdminPanel({ onClose }) {
   });
   const [migrating, setMigrating] = useState(false);
   const [migrationDone, setMigrationDone] = useState(false);
+  const [fixing, setFixing] = useState(false);
+  const [fixDone, setFixDone] = useState(false);
 
   // Cargar config al autenticarse
   useEffect(() => {
@@ -130,6 +132,19 @@ export function AdminPanel({ onClose }) {
       alert("Error en migración: " + error.message);
     }
     setMigrating(false);
+  };
+
+  const handleFix = async () => {
+    if (!confirm("¿Mover predicciones de 'semifinales' a 'cuartos'? Esto arregla el problema donde las predicciones de cuartos acabaron en semifinales.")) return;
+    setFixing(true);
+    try {
+      await fixMoveSemifinalsToQuarters();
+      setFixDone(true);
+      alert("¡Reparación completada! Las predicciones ahora están en 'Cuartos'. Los usuarios pueden hacer sus predicciones de Semifinales desde cero.");
+    } catch (error) {
+      alert("Error en reparación: " + error.message);
+    }
+    setFixing(false);
   };
 
   const currentAgrupaciones = FASES_CONFIG[selectedFase].agrupaciones;
@@ -525,6 +540,35 @@ export function AdminPanel({ onClose }) {
                 >
                   {migrating ? "Migrando..." : migrationDone ? "Migración completada ✓" : "Ejecutar migración"}
                 </button>
+
+                {/* Reparación: mover semifinales a cuartos */}
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: "#D4756B", marginBottom: 8 }}>
+                    Reparar: Semifinales → Cuartos
+                  </div>
+                  <div style={{ fontSize: 12, color: T.textSec, marginBottom: 12, lineHeight: 1.5 }}>
+                    Si las predicciones de cuartos acabaron guardadas en "semifinales" por error,
+                    este botón las mueve a "cuartos" para que los usuarios puedan hacer sus predicciones de semifinales desde cero.
+                  </div>
+                  <button
+                    onClick={handleFix}
+                    disabled={fixing || fixDone}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: T.rSm,
+                      border: "none",
+                      cursor: fixing || fixDone ? "not-allowed" : "pointer",
+                      fontFamily: T.font,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      background: fixDone ? "#5DB89C" : "#D4756B",
+                      color: T.textLight,
+                      opacity: fixDone ? 0.7 : 1
+                    }}
+                  >
+                    {fixing ? "Reparando..." : fixDone ? "Reparación completada ✓" : "Mover a Cuartos"}
+                  </button>
+                </div>
               </div>
             </Section>
 

@@ -85,12 +85,38 @@ export function usePredictions(userName, fase = 'semifinales') {
           // Verificar si tiene estructura por fases
           if (playerData[fase]) {
             const { updatedAt, ...rest } = playerData[fase];
-            setMyPredictions(prev => ({ ...prev, ...rest }));
+            setMyPredictions({
+              coros: rest.coros || [],
+              comparsas: rest.comparsas || [],
+              chirigotas: rest.chirigotas || [],
+              cuartetos: rest.cuartetos || []
+            });
           } else if (!playerData.cuartos && !playerData.semifinales) {
             // Formato antiguo (sin fases) - compatibilidad
             const { updatedAt, ...rest } = playerData;
-            setMyPredictions(prev => ({ ...prev, ...rest }));
+            setMyPredictions({
+              coros: rest.coros || [],
+              comparsas: rest.comparsas || [],
+              chirigotas: rest.chirigotas || [],
+              cuartetos: rest.cuartetos || []
+            });
+          } else {
+            // No hay predicciones para esta fase - resetear a vacío
+            setMyPredictions({
+              coros: [],
+              comparsas: [],
+              chirigotas: [],
+              cuartetos: []
+            });
           }
+        } else {
+          // Usuario sin predicciones - resetear a vacío
+          setMyPredictions({
+            coros: [],
+            comparsas: [],
+            chirigotas: [],
+            cuartetos: []
+          });
         }
       }
       setLoading(false);
@@ -250,4 +276,30 @@ export async function migratePredictionsToPhases() {
   await fsSet('predictions', 'all', migrated);
   console.log('Migration complete!', migrated);
   return migrated;
+}
+
+/**
+ * Función de REPARACIÓN: mover predicciones de semifinales a cuartos
+ * Usar si las predicciones de cuartos acabaron en semifinales por error
+ */
+export async function fixMoveSemifinalsToQuarters() {
+  const all = await fsGet('predictions', 'all') || {};
+  const fixed = {};
+
+  for (const [playerName, playerData] of Object.entries(all)) {
+    // Si tiene semifinales pero no cuartos, mover semifinales -> cuartos
+    if (playerData.semifinales && !playerData.cuartos) {
+      fixed[playerName] = {
+        cuartos: playerData.semifinales
+        // semifinales queda vacío para empezar de 0
+      };
+      console.log(`${playerName}: movido semifinales -> cuartos`);
+    } else {
+      fixed[playerName] = playerData;
+    }
+  }
+
+  await fsSet('predictions', 'all', fixed);
+  console.log('Fix complete!', fixed);
+  return fixed;
 }
