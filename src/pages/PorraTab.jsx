@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, SCORING, MAX_PASAN } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, AGRUPACIONES_SEMIFINALES, SCORING, MAX_PASAN } from '../data/constants';
 import { Section, Dot, Tag } from '../components/ui';
 import { PredCard } from '../components/PredCard';
 import { LockedBanner } from '../components/LockedBanner';
@@ -334,15 +334,19 @@ function QuienPasaView({ userName, locked }) {
 // PUNTOS VIEW
 // ============================================
 function PuntosView({ userName, locked }) {
+  const [activeFase, setActiveFase] = useState("final");
   const [activeMod, setActiveMod] = useState("comparsas");
   const [selectedAgr, setSelectedAgr] = useState(null);
+  const [showSemiScores, setShowSemiScores] = useState(false);
 
-  const { myScores, setScore } = useScores(userName, 'final');
+  const { allScores, myScores, setScore } = useScores(userName, activeFase);
 
+  const isReadOnly = activeFase !== "final";
   const mod = MODALIDADES[activeMod];
-  const agrs = AGRUPACIONES[activeMod];
+  const agrs = activeFase === "semifinales" ? AGRUPACIONES_SEMIFINALES[activeMod] : AGRUPACIONES[activeMod];
   const scoreDef = SCORING[activeMod];
   const maxTotal = scoreDef.reduce((s, d) => s + d.max, 0);
+  const inputDisabled = locked || isReadOnly;
 
   const getTotal = agr => {
     const s = myScores[activeMod]?.[agr] || {};
@@ -351,7 +355,65 @@ function PuntosView({ userName, locked }) {
 
   return (
     <>
-      {locked && <LockedBanner />}
+      {locked && !isReadOnly && <LockedBanner />}
+
+      {/* Selector de fase */}
+      <div
+        style={{
+          display: "flex",
+          gap: 4,
+          marginBottom: 16,
+          background: T.bgWarm,
+          borderRadius: T.rSm,
+          padding: 4,
+          border: `1px solid ${T.border}`
+        }}
+      >
+        {[
+          { id: "final", label: "Final" },
+          { id: "semifinales", label: "Semifinales" }
+        ].map(f => (
+          <button
+            key={f.id}
+            onClick={() => {
+              setActiveFase(f.id);
+              setSelectedAgr(null);
+            }}
+            style={{
+              flex: 1,
+              padding: "10px",
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: T.font,
+              fontWeight: 600,
+              fontSize: 13,
+              background: activeFase === f.id ? T.bgCard : "transparent",
+              color: activeFase === f.id ? T.text : T.textSec,
+              boxShadow: activeFase === f.id ? T.shadow : "none"
+            }}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
+
+      {isReadOnly && (
+        <div
+          style={{
+            padding: "10px 14px",
+            borderRadius: T.rSm,
+            background: `${T.wine}08`,
+            border: `1px solid ${T.wine}20`,
+            marginBottom: 14,
+            fontSize: 12,
+            color: T.wine,
+            fontWeight: 500
+          }}
+        >
+          Puntuaciones de semifinales (solo lectura)
+        </div>
+      )}
 
       {/* Selector de modalidad */}
       <div
@@ -534,9 +596,9 @@ function PuntosView({ userName, locked }) {
                       step={0.1}
                       value={val}
                       onChange={e =>
-                        !locked && setScore(activeMod, selectedAgr, s.key, e.target.value, s.max)
+                        !inputDisabled && setScore(activeMod, selectedAgr, s.key, e.target.value, s.max)
                       }
-                      disabled={locked}
+                      disabled={inputDisabled}
                       placeholder="—"
                       style={{
                         width: "100%",
@@ -553,7 +615,7 @@ function PuntosView({ userName, locked }) {
                         fontWeight: 600,
                         color: T.text,
                         outline: "none",
-                        opacity: locked ? 0.7 : 1
+                        opacity: inputDisabled ? 0.7 : 1
                       }}
                       onFocus={e => (e.target.style.borderColor = mod.color)}
                       onBlur={e =>
@@ -566,6 +628,111 @@ function PuntosView({ userName, locked }) {
               })}
             </div>
           </div>
+
+          {/* Puntuaciones de semifinales de todos */}
+          {activeFase === "final" && (() => {
+            const semiUsers = Object.entries(allScores)
+              .map(([name, data]) => {
+                const scores = data?.semifinales?.[activeMod]?.[selectedAgr];
+                if (!scores) return null;
+                const total = scoreDef.reduce((sum, d) => sum + (scores[d.key] || 0), 0);
+                if (total === 0) return null;
+                return { name, scores, total };
+              })
+              .filter(Boolean)
+              .sort((a, b) => b.total - a.total);
+
+            if (semiUsers.length === 0) return null;
+
+            return (
+              <div style={{ marginTop: 14 }}>
+                <button
+                  onClick={() => setShowSemiScores(!showSemiScores)}
+                  style={{
+                    width: "100%",
+                    padding: "12px 14px",
+                    borderRadius: T.rSm,
+                    border: `1.5px solid ${showSemiScores ? T.wine : T.border}`,
+                    background: showSemiScores ? `${T.wine}08` : T.bgCard,
+                    cursor: "pointer",
+                    fontFamily: T.font,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: showSemiScores ? T.wine : T.text,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    boxShadow: T.shadow
+                  }}
+                >
+                  {showSemiScores ? "Ocultar" : "Ver puntuaciones de semifinales"}
+                  <span style={{
+                    display: "inline-block",
+                    transition: "transform .2s",
+                    transform: showSemiScores ? "rotate(180deg)" : "none",
+                    fontSize: 10
+                  }}>▼</span>
+                </button>
+
+                {showSemiScores && (
+                  <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+                    {semiUsers.map(u => (
+                      <div
+                        key={u.name}
+                        style={{
+                          background: T.bgCard,
+                          borderRadius: T.rSm,
+                          border: `1px solid ${T.border}`,
+                          overflow: "hidden",
+                          boxShadow: T.shadow
+                        }}
+                      >
+                        <div style={{
+                          padding: "10px 14px",
+                          background: T.bgWarm,
+                          borderBottom: `1px solid ${T.border}`,
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center"
+                        }}>
+                          <span style={{ fontWeight: 700, fontSize: 13, color: T.text }}>
+                            {u.name}{u.name === userName ? " (tú)" : ""}
+                          </span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: mod.color }}>
+                            {u.total} / {maxTotal}
+                          </span>
+                        </div>
+                        <div style={{
+                          padding: "8px 14px",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 6
+                        }}>
+                          {scoreDef.map(s => {
+                            const val = u.scores[s.key];
+                            if (val == null) return null;
+                            return (
+                              <span key={s.key} style={{
+                                fontSize: 11,
+                                padding: "3px 8px",
+                                borderRadius: T.rPill,
+                                background: `${mod.color}10`,
+                                color: mod.color,
+                                fontWeight: 500
+                              }}>
+                                {s.label}: {val}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       )}
     </>
