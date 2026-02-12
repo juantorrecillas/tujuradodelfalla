@@ -30,21 +30,35 @@ export function PredCard({ name, picks, max, color }) {
         </span>
       </div>
       <div style={{ padding: "10px 14px" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-          {picks.map((p) => (
-            <span
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {picks.map((p, i) => (
+            <div
               key={p}
               style={{
-                fontSize: 11,
-                padding: "4px 10px",
-                borderRadius: T.rPill,
-                background: `${color}12`,
-                color,
-                fontWeight: 500
+                display: "flex",
+                alignItems: "center",
+                gap: 8
               }}
             >
-              {p}
-            </span>
+              <span style={{
+                width: 20, height: 20, borderRadius: 99,
+                background: color, color: "#fff",
+                fontWeight: 800, fontSize: 9,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0
+              }}>
+                {i + 1}°
+              </span>
+              <span
+                style={{
+                  fontSize: 12,
+                  color,
+                  fontWeight: 500
+                }}
+              >
+                {p}
+              </span>
+            </div>
           ))}
         </div>
       </div>

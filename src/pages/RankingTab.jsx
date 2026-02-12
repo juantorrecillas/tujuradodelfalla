@@ -8,7 +8,8 @@ import { getPlayerPredictionsForPhase } from '../hooks/useAppState';
 // Configuración de fases
 const FASES_CONFIG = {
   cuartos: { label: "Cuartos", order: 1 },
-  semifinales: { label: "Semifinales", order: 2 }
+  semifinales: { label: "Semifinales", order: 2 },
+  final: { label: "Final", order: 3 }
 };
 
 export function RankingTab({ resultados }) {
@@ -130,44 +131,6 @@ export function RankingTab({ resultados }) {
   return (
     <div style={{ paddingBottom: 100 }}>
       <PageHeader title="Clasificación" subtitle="Ranking de participantes" />
-
-      <div className="page-content" style={{ padding: "0 20px" }}>
-        {/* Banner de estado */}
-        {!hasAnyResults ? (
-          <div
-            style={{
-              background: `linear-gradient(135deg, #6B2C4A, #4A1A30)`,
-              borderRadius: T.r,
-              padding: "18px 20px",
-              color: T.textLight,
-              marginBottom: 20,
-              boxShadow: T.shadowMd
-            }}
-          >
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
-              Esperando resultados oficiales
-            </div>
-            <div style={{ fontSize: 12, opacity: 0.7 }}>
-              Los aciertos se contarán cuando se publiquen los resultados de cada fase.
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              background: `linear-gradient(135deg, #5DB89C, #3D8B73)`,
-              borderRadius: T.r,
-              padding: "18px 20px",
-              color: T.textLight,
-              marginBottom: 20,
-              boxShadow: T.shadowMd
-            }}
-          >
-            <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4 }}>
-              Ranking actualizado
-            </div>
-          </div>
-        )}
-      </div>
 
       <div className="page-content" style={{ padding: "0 20px" }}>
         <Section title="Participantes" subtitle="Toca en un nombre para ver sus predicciones">

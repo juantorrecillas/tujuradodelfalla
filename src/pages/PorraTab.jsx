@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, SCORING } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, SCORING, MAX_PASAN } from '../data/constants';
 import { Section, Dot, Tag } from '../components/ui';
 import { PredCard } from '../components/PredCard';
 import { LockedBanner } from '../components/LockedBanner';
@@ -123,9 +123,10 @@ function QuienPasaView({ userName, locked }) {
   const [activeMod, setActiveMod] = useState("comparsas");
   const [showOthers, setShowOthers] = useState(false);
 
-  const { allPredictions, myPredictions, togglePrediction } = usePredictions(userName, 'semifinales');
+  const { allPredictions, myPredictions, togglePrediction } = usePredictions(userName, 'final');
 
   const mod = MODALIDADES[activeMod];
+  const maxPasan = MAX_PASAN.final[activeMod];
   const agrs = AGRUPACIONES[activeMod];
   const myPicks = myPredictions[activeMod] || [];
 
@@ -171,40 +172,50 @@ function QuienPasaView({ userName, locked }) {
         ))}
       </div>
 
-      {/* Contador */}
+      {/* Podio */}
       <div
         style={{
           borderRadius: T.rSm,
-          padding: "10px 14px",
+          padding: "12px 14px",
           marginBottom: 14,
+          background: T.bgWarm,
+          border: `1px solid ${T.border}`,
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          background:
-            myPicks.length === mod.maxPasan ? `${mod.color}10` : T.bgWarm,
-          border: `1px solid ${
-            myPicks.length === mod.maxPasan ? mod.color + "30" : T.border
-          }`
+          flexDirection: "column",
+          gap: 6
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>
-          {myPicks.length} de {mod.maxPasan}
-        </span>
-        {myPicks.length === mod.maxPasan && (
-          <span style={{ fontSize: 12, color: mod.color, fontWeight: 700 }}>
-            Completo
-          </span>
-        )}
+        {["Primer premio", "Segundo premio", "Tercer premio"].map((label, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{
+              width: 24, height: 24, borderRadius: 99,
+              background: myPicks[i] ? mod.color : T.border,
+              color: "#fff", fontWeight: 800, fontSize: 11,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+            }}>
+              {i + 1}°
+            </span>
+            <span style={{
+              fontSize: 13,
+              fontWeight: myPicks[i] ? 600 : 400,
+              color: myPicks[i] ? T.text : T.textSec,
+              fontStyle: myPicks[i] ? "normal" : "italic"
+            }}>
+              {myPicks[i] || label}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Lista de agrupaciones */}
       <div className="agrupaciones-grid" style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         {agrs.map(nombre => {
-          const sel = myPicks.includes(nombre);
+          const pos = myPicks.indexOf(nombre);
+          const sel = pos !== -1;
           return (
             <button
               key={nombre}
-              onClick={() => !locked && togglePrediction(activeMod, nombre, mod.maxPasan)}
+              onClick={() => !locked && togglePrediction(activeMod, nombre, maxPasan)}
               disabled={locked}
               style={{
                 display: "flex",
@@ -232,23 +243,13 @@ function QuienPasaView({ userName, locked }) {
                   background: sel ? mod.color : "transparent",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "center"
+                  justifyContent: "center",
+                  color: "#fff",
+                  fontWeight: 800,
+                  fontSize: 10
                 }}
               >
-                {sel && (
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="#fff"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                )}
+                {sel && `${pos + 1}°`}
               </div>
               <span
                 style={{
@@ -293,7 +294,7 @@ function QuienPasaView({ userName, locked }) {
             <PredCard
               name={`${userName} (tú)`}
               picks={myPicks}
-              max={mod.maxPasan}
+              max={maxPasan}
               color={mod.color}
             />
             {others.map(p => {
@@ -303,7 +304,7 @@ function QuienPasaView({ userName, locked }) {
                   key={p.name}
                   name={p.name}
                   picks={picks}
-                  max={mod.maxPasan}
+                  max={maxPasan}
                   color={mod.color}
                 />
               ) : null;
@@ -336,7 +337,7 @@ function PuntosView({ userName, locked }) {
   const [activeMod, setActiveMod] = useState("comparsas");
   const [selectedAgr, setSelectedAgr] = useState(null);
 
-  const { myScores, setScore } = useScores(userName);
+  const { myScores, setScore } = useScores(userName, 'final');
 
   const mod = MODALIDADES[activeMod];
   const agrs = AGRUPACIONES[activeMod];

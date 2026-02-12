@@ -1,13 +1,14 @@
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, FECHAS_CLAVE, SESIONES_SEMIFINALES } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, FECHAS_CLAVE, SESIONES_FINAL } from '../data/constants';
 import { Section, Dot } from '../components/ui';
 import { SessionCard } from '../components/SessionCard';
 
 export function InicioTab({ setActive, onAdminClick }) {
   const today = new Date().toISOString().split('T')[0];
-  const todaySession = SESIONES_SEMIFINALES.find(s => s.fecha === today);
-  const nextSession = SESIONES_SEMIFINALES.find(s => s.fecha > today);
-  const pastSessions = SESIONES_SEMIFINALES.filter(s => s.fecha < today);
+  const hasSessions = SESIONES_FINAL.length > 0;
+  const todaySession = hasSessions ? SESIONES_FINAL.find(s => s.fecha === today) : null;
+  const nextSession = hasSessions ? SESIONES_FINAL.find(s => s.fecha > today) : null;
+  const pastSessions = hasSessions ? SESIONES_FINAL.filter(s => s.fecha < today) : [];
   const lastSession = pastSessions[pastSessions.length - 1];
 
   return (
@@ -161,13 +162,13 @@ export function InicioTab({ setActive, onAdminClick }) {
           </div>
         </Section>
 
-        {/* Hoy en el Falla */}
+        {/* Gran Final */}
         {todaySession ? (
           <Section title="Hoy en el Falla">
             <SessionCard session={todaySession} highlight />
           </Section>
         ) : (
-          <Section title="Hoy en el Falla">
+          <Section title="Gran Final">
             <div
               style={{
                 background: T.bgCard,
@@ -179,7 +180,7 @@ export function InicioTab({ setActive, onAdminClick }) {
               }}
             >
               <div style={{ fontSize: 40, marginBottom: 12, opacity: 0.3 }}>
-                🙍‍♂️🙍‍♀️
+                🏆
               </div>
               <div
                 style={{
@@ -189,7 +190,7 @@ export function InicioTab({ setActive, onAdminClick }) {
                   marginBottom: 6
                 }}
               >
-                No hay sesión hoy
+                {!hasSessions ? "Calendario por determinar" : "No hay sesión hoy"}
               </div>
               <div
                 style={{
@@ -198,7 +199,9 @@ export function InicioTab({ setActive, onAdminClick }) {
                   lineHeight: 1.6
                 }}
               >
-                {nextSession ? (
+                {!hasSessions ? (
+                  "El calendario de la Gran Final se publicará próximamente."
+                ) : nextSession ? (
                   <>
                     Próxima sesión: <strong style={{ color: T.text }}>{nextSession.dia}</strong>
                     <br />
@@ -206,7 +209,7 @@ export function InicioTab({ setActive, onAdminClick }) {
                   </>
                 ) : lastSession ? (
                   <>
-                    Las semifinales han finalizado.
+                    La Gran Final ha finalizado.
                     <br />
                     <span style={{ fontSize: 12 }}>Última sesión: {lastSession.dia}</span>
                   </>

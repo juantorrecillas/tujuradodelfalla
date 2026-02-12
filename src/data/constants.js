@@ -1,52 +1,87 @@
-// Modalidades y sus configuraciones (Semifinales)
+// Modalidades y sus configuraciones
 export const MODALIDADES = {
-  coros: { label: "Coro", color: "#6B8FD4", maxPasan: 4 },
-  comparsas: { label: "Comparsa", color: "#9B7EC8", maxPasan: 4 },
-  chirigotas: { label: "Chirigota", color: "#E08B8B", maxPasan: 4 },
-  cuartetos: { label: "Cuarteto", color: "#5DB89C", maxPasan: 4 },
+  coros: { label: "Coro", color: "#6B8FD4" },
+  comparsas: { label: "Comparsa", color: "#9B7EC8" },
+  chirigotas: { label: "Chirigota", color: "#E08B8B" },
+  cuartetos: { label: "Cuarteto", color: "#5DB89C" },
 };
 
-// Agrupaciones por modalidad (Semifinales 2026)
+// Agrupaciones por modalidad (Gran Final 2026)
 export const AGRUPACIONES = {
-  // AGRUPACIONES es la fase actual (semifinales)
-  // Para cuartos, ver AGRUPACIONES_CUARTOS más abajo
   coros: [
     "El Sindicato",
-    "La ciudad perfecta",
     "ADN",
-    "El reino de los cielos",
-    "La carnicería",
     "Las mil maravillas",
     "La esencia"
   ],
   comparsas: [
-    "El manicomio",
-    "La Camorra",
     "El patriota",
     "Los Humanos",
-    "Los Locos",
-    "OBDC me quedo contigo",
-    "El jovencito Frankenstein",
-    "Los pájaros carpinteros",
     "DSAS3",
     "Los invisibles"
   ],
   chirigotas: [
-    "Los hombres de Paco",
-    "Los Robins",
     "Una chirigota en teoría",
-    "Los antiguos",
-    "Los Compay",
-    "Piensa mal y acertarás: Los desconfiaos",
     "Los Amish del mono",
     "Los que van a coger papas",
-    "Los que la tienen de mármol",
     "Ssshhhhh!!"
   ],
   cuartetos: [
     "Crónica de una muerte más que anunciada",
     "Los latin king de la calle Paskin",
     "¡Que no vengan!"
+  ],
+};
+
+// Agrupaciones de Semifinales (para histórico)
+export const AGRUPACIONES_SEMIFINALES = {
+  coros: [
+    "El Sindicato", "La ciudad perfecta", "ADN",
+    "El reino de los cielos", "La carnicería",
+    "Las mil maravillas", "La esencia"
+  ],
+  comparsas: [
+    "El manicomio", "La Camorra", "El patriota",
+    "Los Humanos", "Los Locos", "OBDC me quedo contigo",
+    "El jovencito Frankenstein", "Los pájaros carpinteros",
+    "DSAS3", "Los invisibles"
+  ],
+  chirigotas: [
+    "Los hombres de Paco", "Los Robins", "Una chirigota en teoría",
+    "Los antiguos", "Los Compay",
+    "Piensa mal y acertarás: Los desconfiaos",
+    "Los Amish del mono", "Los que van a coger papas",
+    "Los que la tienen de mármol", "Ssshhhhh!!"
+  ],
+  cuartetos: [
+    "Crónica de una muerte más que anunciada",
+    "Los latin king de la calle Paskin",
+    "¡Que no vengan!"
+  ],
+};
+
+// Puntuaciones de los eliminados en semifinales
+export const PUNTUACIONES_SEMIFINALES = {
+  coros: [
+    { nombre: "La carnicería", puntos: 677.96 },
+    { nombre: "La ciudad perfecta", puntos: 627.43 },
+    { nombre: "El reino de los cielos", puntos: 605.16 },
+  ],
+  comparsas: [
+    { nombre: "Los Locos", puntos: 672.82 },
+    { nombre: "La Camorra", puntos: 669.92 },
+    { nombre: "El manicomio", puntos: 668.47 },
+    { nombre: "OBDC me quedo contigo", puntos: 667.63 },
+    { nombre: "Los pájaros carpinteros", puntos: 662.42 },
+    { nombre: "El jovencito Frankenstein", puntos: 657.36 },
+  ],
+  chirigotas: [
+    { nombre: "Los que la tienen de mármol", puntos: 673.71 },
+    { nombre: "Los Robins", puntos: 669.95 },
+    { nombre: "Los hombres de Paco", puntos: 669.78 },
+    { nombre: "Piensa mal y acertarás: Los desconfiaos", puntos: 668.90 },
+    { nombre: "Los Compay", puntos: 668.63 },
+    { nombre: "Los antiguos", puntos: 663.95 },
   ],
 };
 
@@ -291,17 +326,21 @@ export const SESIONES_SEMIFINALES = [
   }
 ];
 
+// Sesiones de la Gran Final (por determinar)
+export const SESIONES_FINAL = [];
+
 // Fases del concurso
 export const FECHAS_CLAVE = [
   { label: "Cuartos de Final", dates: "30 ene – 5 feb", status: "completed" },
-  { label: "Semifinales", dates: "8 – 11 feb", status: "active" },
-  { label: "Gran Final", dates: "13 feb", status: "upcoming" },
+  { label: "Semifinales", dates: "8 – 11 feb", status: "completed" },
+  { label: "Gran Final", dates: "14 feb", status: "active" },
 ];
 
-// Máximo que pasan por fase
+// Máximo que pasan/premian por fase
 export const MAX_PASAN = {
   cuartos: { coros: 7, comparsas: 10, chirigotas: 10, cuartetos: 5 },
-  semifinales: { coros: 4, comparsas: 4, chirigotas: 4, cuartetos: 4 },
+  semifinales: { coros: 4, comparsas: 4, chirigotas: 4, cuartetos: 3 },
+  final: { coros: 3, comparsas: 3, chirigotas: 3, cuartetos: 3 },
 };
 
 // Agrupaciones de Cuartos (para histórico de resultados)

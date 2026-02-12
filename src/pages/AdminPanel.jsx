@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import { T } from '../data/theme';
-import { MODALIDADES, AGRUPACIONES, AGRUPACIONES_CUARTOS, MAX_PASAN, ADMIN_PIN } from '../data/constants';
+import { MODALIDADES, AGRUPACIONES, AGRUPACIONES_CUARTOS, AGRUPACIONES_SEMIFINALES, MAX_PASAN, ADMIN_PIN } from '../data/constants';
 import { PageHeader, Section, Dot } from '../components/ui';
 import { fsGet, fsSet, fsSubscribe } from '../lib/firebase';
-import { migratePredictionsToPhases, fixMoveSemifinalsToQuarters } from '../hooks/useAppState';
+import { migratePredictionsToPhases, fixMoveSemifinalsToQuarters, migrateScoresToPhases } from '../hooks/useAppState';
 
 const FASES_CONFIG = {
   cuartos: { label: "Cuartos", agrupaciones: AGRUPACIONES_CUARTOS },
-  semifinales: { label: "Semifinales", agrupaciones: AGRUPACIONES }
+  semifinales: { label: "Semifinales", agrupaciones: AGRUPACIONES_SEMIFINALES },
+  final: { label: "Final", agrupaciones: AGRUPACIONES }
 };
 
 export function AdminPanel({ onClose }) {
   const [pin, setPin] = useState("");
   const [authenticated, setAuthenticated] = useState(false);
-  const [config, setConfig] = useState({ fase: 'semifinales', locked: false, resultados: null });
+  const [config, setConfig] = useState({ fase: 'final', locked: false, resultados: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedMod, setSelectedMod] = useState("coros");
@@ -28,6 +29,8 @@ export function AdminPanel({ onClose }) {
   const [migrationDone, setMigrationDone] = useState(false);
   const [fixing, setFixing] = useState(false);
   const [fixDone, setFixDone] = useState(false);
+  const [migratingScores, setMigratingScores] = useState(false);
+  const [scoresMigrationDone, setScoresMigrationDone] = useState(false);
 
   // Cargar config al autenticarse
   useEffect(() => {
@@ -569,6 +572,46 @@ export function AdminPanel({ onClose }) {
                     {fixing ? "Reparando..." : fixDone ? "Reparación completada ✓" : "Mover a Cuartos"}
                   </button>
                 </div>
+
+                {/* Migrar puntuaciones a fases */}
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                  <div style={{ fontWeight: 700, fontSize: 13, color: T.wine, marginBottom: 8 }}>
+                    Migrar puntuaciones a fases
+                  </div>
+                  <div style={{ fontSize: 12, color: T.textSec, marginBottom: 12, lineHeight: 1.5 }}>
+                    Mueve las puntuaciones existentes (formato antiguo) a "Semifinales",
+                    para que los usuarios puedan dar puntuaciones nuevas en la Final.
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!confirm("¿Migrar puntuaciones al formato por fases? Las puntuaciones actuales se moverán a 'Semifinales'.")) return;
+                      setMigratingScores(true);
+                      try {
+                        await migrateScoresToPhases();
+                        setScoresMigrationDone(true);
+                        alert("Puntuaciones migradas a 'Semifinales'.");
+                      } catch (error) {
+                        alert("Error: " + error.message);
+                      }
+                      setMigratingScores(false);
+                    }}
+                    disabled={migratingScores || scoresMigrationDone}
+                    style={{
+                      padding: "10px 16px",
+                      borderRadius: T.rSm,
+                      border: "none",
+                      cursor: migratingScores || scoresMigrationDone ? "not-allowed" : "pointer",
+                      fontFamily: T.font,
+                      fontWeight: 600,
+                      fontSize: 13,
+                      background: scoresMigrationDone ? "#5DB89C" : T.wine,
+                      color: T.textLight,
+                      opacity: scoresMigrationDone ? 0.7 : 1
+                    }}
+                  >
+                    {migratingScores ? "Migrando..." : scoresMigrationDone ? "Migración completada ✓" : "Migrar puntuaciones"}
+                  </button>
+                </div>
               </div>
             </Section>
 
@@ -595,6 +638,9 @@ export function AdminPanel({ onClose }) {
                 <br />
                 <strong>Resultados Semifinales:</strong>{" "}
                 {config.resultados?.semifinales?.quienPasa ? "Publicados" : "Pendientes"}
+                <br />
+                <strong>Resultados Final:</strong>{" "}
+                {config.resultados?.final?.quienPasa ? "Publicados" : "Pendientes"}
               </div>
             </Section>
           </>

@@ -36,7 +36,7 @@ export function useUser() {
  */
 export function useConfig() {
   const [config, setConfig] = useState({
-    fase: 'semifinales',
+    fase: 'final',
     locked: false,
     resultados: null
   });
@@ -192,9 +192,9 @@ export function getPlayerPredictionsForPhase(playerData, fase) {
 }
 
 /**
- * Hook para manejar las puntuaciones predichas
+ * Hook para manejar las puntuaciones predichas - CON HISTÓRICO POR FASE
  */
-export function useScores(userName) {
+export function useScores(userName, fase = 'final') {
   const [allScores, setAllScores] = useState({});
   const [myScores, setMyScores] = useState({});
   const [loading, setLoading] = useState(true);
@@ -204,23 +204,42 @@ export function useScores(userName) {
       if (data) {
         setAllScores(data);
         if (userName && data[userName]) {
-          const { updatedAt, ...rest } = data[userName];
-          setMyScores(rest);
+          const playerData = data[userName];
+          // Verificar si tiene estructura por fases
+          if (playerData[fase]) {
+            const { updatedAt, ...rest } = playerData[fase];
+            setMyScores(rest);
+          } else if (!playerData.semifinales && !playerData.final) {
+            // Formato antiguo (sin fases) - compatibilidad, tratar como semifinales
+            if (fase === 'semifinales') {
+              const { updatedAt, ...rest } = playerData;
+              setMyScores(rest);
+            } else {
+              setMyScores({});
+            }
+          } else {
+            setMyScores({});
+          }
+        } else {
+          setMyScores({});
         }
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [userName]);
+  }, [userName, fase]);
 
   const saveScores = useCallback(async (scores) => {
     if (!userName) return;
 
     const all = await fsGet('scores', 'all') || {};
-    all[userName] = { ...scores, updatedAt: Date.now() };
+    if (!all[userName]) {
+      all[userName] = {};
+    }
+    all[userName][fase] = { ...scores, updatedAt: Date.now() };
     await fsSet('scores', 'all', all);
-  }, [userName]);
+  }, [userName, fase]);
 
   const setScore = useCallback((modalidad, agrupacion, key, value, maxValue) => {
     const num = Math.min(Math.max(0, Number(value) || 0), maxValue);
@@ -302,4 +321,30 @@ export async function fixMoveSemifinalsToQuarters() {
   await fsSet('predictions', 'all', fixed);
   console.log('Fix complete!', fixed);
   return fixed;
+}
+
+/**
+ * Migrar puntuaciones del formato antiguo (plano) al nuevo (por fases)
+ * Mueve las puntuaciones existentes a 'semifinales'
+ */
+export async function migrateScoresToPhases() {
+  const all = await fsGet('scores', 'all') || {};
+  const migrated = {};
+
+  for (const [playerName, playerData] of Object.entries(all)) {
+    // Si ya tiene estructura por fases, mantener
+    if (playerData.semifinales || playerData.final) {
+      migrated[playerName] = playerData;
+    } else {
+      // Formato antiguo - mover a semifinales
+      const { updatedAt, ...scores } = playerData;
+      migrated[playerName] = {
+        semifinales: { ...scores, updatedAt }
+      };
+    }
+  }
+
+  await fsSet('scores', 'all', migrated);
+  console.log('Scores migration complete!', migrated);
+  return migrated;
 }
