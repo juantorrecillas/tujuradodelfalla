@@ -332,7 +332,7 @@ export const SESIONES_FINAL = [
     id: 1,
     fecha: "2026-02-13",
     label: "Gran Final",
-    dia: "Jueves 13 febrero",
+    dia: "Viernes 13 febrero",
     hora: "20:00h",
     agrupaciones: [
       // 🔴 Primer Bloque
