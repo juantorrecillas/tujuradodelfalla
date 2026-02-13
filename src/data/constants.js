@@ -326,14 +326,43 @@ export const SESIONES_SEMIFINALES = [
   }
 ];
 
-// Sesiones de la Gran Final (por determinar)
-export const SESIONES_FINAL = [];
+// Sesiones de la Gran Final (13 feb 2026)
+export const SESIONES_FINAL = [
+  {
+    id: 1,
+    fecha: "2026-02-13",
+    label: "Gran Final",
+    dia: "Jueves 13 febrero",
+    hora: "20:00h",
+    agrupaciones: [
+      // 🔴 Primer Bloque
+      { nombre: "El Sindicato", modalidad: "coros" },
+      { nombre: "Los que van a coger papas", modalidad: "chirigotas" },
+      { nombre: "Los invisibles", modalidad: "comparsas" },
+      { nombre: "Los latin king de la calle Paskin", modalidad: "cuartetos" },
+      // 🔵 Segundo Bloque
+      { nombre: "Las mil maravillas", modalidad: "coros" },
+      { nombre: "Una chirigota en teoría", modalidad: "chirigotas" },
+      { nombre: "El patriota", modalidad: "comparsas" },
+      { nombre: "¡Que no vengan!", modalidad: "cuartetos" },
+      // 🟡 Tercer Bloque
+      { nombre: "ADN", modalidad: "coros" },
+      { nombre: "Ssshhhhh!!", modalidad: "chirigotas" },
+      { nombre: "Los Humanos", modalidad: "comparsas" },
+      { nombre: "Crónica de una muerte más que anunciada", modalidad: "cuartetos" },
+      // 🟢 Cuarto Bloque
+      { nombre: "La esencia", modalidad: "coros" },
+      { nombre: "Los Amish del mono", modalidad: "chirigotas" },
+      { nombre: "DSAS3", modalidad: "comparsas" }
+    ]
+  }
+];
 
 // Fases del concurso
 export const FECHAS_CLAVE = [
   { label: "Cuartos de Final", dates: "30 ene – 5 feb", status: "completed" },
   { label: "Semifinales", dates: "8 – 11 feb", status: "completed" },
-  { label: "Gran Final", dates: "14 feb", status: "active" },
+  { label: "Gran Final", dates: "13 feb", status: "active" },
 ];
 
 // Máximo que pasan/premian por fase
